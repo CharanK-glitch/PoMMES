@@ -14,7 +14,7 @@ int main(){
     #elif defined(MULTSHARE)
         std::ifstream infile("./examples/rp_sbox_multshare/pommes_multshare_d1.c.019t.ssa");
     #elif defined(SQUARE_SHARE)
-        std::ifstream infile("./examples/rp_sbox_multtable/pommes_square_share_d1.c.019t.ssa");
+        std::ifstream infile("./examples/rp_sbox_squareshare/pommes_square_share_d1.c.019t.ssa");
     #elif defined(SQUARE)
         std::ifstream infile("./examples/rp_sbox_square/pommes_square_d1.c.019t.ssa");
     #elif defined(MULTTABLE)

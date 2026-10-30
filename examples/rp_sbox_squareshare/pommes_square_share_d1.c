@@ -1,5 +1,5 @@
 #include "../common.h"
-#define POMMES_INPUT_SQUARE_SHARE SEC PUB
+#define POMMES_INPUT_SQUARE_SHARE SEC SEC
 #define POMMES_FUNCTION_CALL_SQUARE RETURNSEC SEC
 
 void square_share(uint8_t *a,uint32_t n)
