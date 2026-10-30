@@ -60,6 +60,22 @@ void generate_graph_plot_file(std::vector<std::vector<uint8_t>>& graph, std::map
 }
 
 
+//write per basic block maximum sensitivity to a file for plotting (secret -> red, public -> blue)
+void generate_bb_sensitivity_file(function& func, const std::string& filename){
+    std::ofstream outfile(filename);
+    for(const auto& bb: func.bb){
+        int32_t max_sens = 0;
+        for(const auto& ssa_instr: bb.ssa_instruction){
+            if(ssa_instr.sensitivity_level > max_sens){
+                max_sens = ssa_instr.sensitivity_level;
+            }
+        }
+        outfile << bb.bb_number << " " << (int32_t)max_sens << std::endl;
+    }
+    outfile.close();
+}
+
+
 //predecessor will contain the bb_number of the current bb as key and the bb_number of all predecessors as value in a list
 void compute_predecessors(function& func, std::vector<std::vector<uint8_t>>& adjacency_matrix, std::map<uint32_t, std::vector<uint32_t>>& predecessors){
 

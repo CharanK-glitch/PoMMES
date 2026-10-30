@@ -61,6 +61,42 @@ def compute_layout(node_ids, edges):
     return pos
 
 
+def generate_sensitivity_plot(bb_sens_path, out_png):
+    bbs = []
+    with open(bb_sens_path, "r") as f:
+        for line in f:
+            parts = line.split()
+            if len(parts) < 2:
+                continue
+            try:
+                bb = int(parts[0])
+                sens = int(parts[1])
+            except ValueError:
+                continue
+            bbs.append((bb, sens))
+    if not bbs:
+        raise RuntimeError(f"no basic block sensitivities found in {bb_sens_path}")
+
+    fig, ax = plt.subplots(figsize=(8, 4))
+    bbs_sorted = sorted(bbs, key=lambda x: x[0])
+    xs = list(range(len(bbs_sorted)))
+    sens_vals = [s for (_, s) in bbs_sorted]
+    colors = ["red" if s == 1 else "steelblue" for s in sens_vals]
+    ax.bar(xs, [1] * len(bbs_sorted), color=colors, edgecolor="black")
+    ax.set_xticks([x for x in xs])
+    ax.set_xticklabels([f"bb{bb}" for (bb, _) in bbs_sorted], rotation=45, ha="right")
+    ax.set_ylim(0, 2)
+    ax.set_yticks([0, 1, 2])
+    ax.set_title("PoMMES Basic Block Sensitivity (0=public, 1=secret)", fontsize=14)
+    ax.set_ylabel("sensitivity")
+    outdir = os.path.dirname(out_png)
+    if outdir and not os.path.isdir(outdir):
+        os.makedirs(outdir, exist_ok=True)
+    plt.savefig(out_png, dpi=150, bbox_inches="tight")
+    plt.close()
+    print(f"wrote sensitivity plot -> {out_png}")
+
+
 def main(cfg_path, out_png):
     nodes, edges = read_cfg(cfg_path)
     pos = compute_layout(list(nodes.keys()), edges)
@@ -105,4 +141,7 @@ def main(cfg_path, out_png):
 if __name__ == "__main__":
     cfg = sys.argv[1] if len(sys.argv) > 1 else "/tmp/pommes_cfg.txt"
     out = sys.argv[2] if len(sys.argv) > 2 else "/tmp/pommes_cfg.png"
+    sens_out = sys.argv[3] if len(sys.argv) > 3 else "/tmp/pommes_bb_sens.txt"
+    sens_out_png = sys.argv[4] if len(sys.argv) > 4 else "/tmp/pommes_bb_sens.png"
     main(cfg, out)
+    generate_sensitivity_plot(sens_out, sens_out_png)
