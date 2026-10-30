@@ -36,6 +36,7 @@ int main(){
     std::vector<std::vector<uint8_t>> adjacency_matrix(func.bb.size(), std::vector<uint8_t>(func.bb.size(), 0));
     std::map<uint32_t, uint32_t> node_to_bb_number;
     build_graph(func, adjacency_matrix, node_to_bb_number);
+    generate_graph_plot_file(adjacency_matrix, node_to_bb_number, "/tmp/pommes_cfg.txt");
 
 
     std::vector<bool> visited(adjacency_matrix.at(0).size(),false);

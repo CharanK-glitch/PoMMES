@@ -43,6 +43,23 @@ void build_graph(function& func, std::vector<std::vector<uint8_t>>& graph, std::
 }
 
 
+//write the control flow graph (adjacency matrix + bb numbering) to a file for plotting
+void generate_graph_plot_file(std::vector<std::vector<uint8_t>>& graph, std::map<uint32_t, uint32_t>& node_to_bb_number, const std::string& filename){
+    std::ofstream outfile(filename);
+    for(const auto& node_entry: node_to_bb_number){
+        outfile << "n " << node_entry.first << " " << node_entry.second << std::endl;
+    }
+    for(uint32_t row = 0; row < graph.size(); ++row){
+        for(uint32_t col = 0; col < graph.at(row).size(); ++col){
+            if(graph.at(row).at(col) == 1){
+                outfile << "e " << row << " " << col << std::endl;
+            }
+        }
+    }
+    outfile.close();
+}
+
+
 //predecessor will contain the bb_number of the current bb as key and the bb_number of all predecessors as value in a list
 void compute_predecessors(function& func, std::vector<std::vector<uint8_t>>& adjacency_matrix, std::map<uint32_t, std::vector<uint32_t>>& predecessors){
 
