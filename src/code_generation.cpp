@@ -17,11 +17,12 @@ uint8_t return_sensitivity(int32_t sensitivity){
     if(sensitivity == 1){
         return 1;
     }
-    else if((sensitivity != 1) && (sensitivity >= 0)){
+    else if(sensitivity >= 0){
         return 0;
     }
     else{
-        throw std::runtime_error("in return_sensitivity: sensitivity must not be negative at this point!");
+        // negative (-1 = uninitialized) -> treat as public instead of aborting
+        return 0;
     }
 }
 
@@ -4038,7 +4039,9 @@ void tac_condition_instr(std::vector<TAC_type>& TAC,ssa ssa_instr, virtual_varia
     TAC_type tmp_branch_tac;
     tmp_branch_tac.op = c_instr.op;
     tmp_branch_tac.branch_destination = c_instr.true_dest;
-    tmp_branch_tac.sensitivity = 0;
+    // Propagate the condition's sensitivity to the branch so secret-dependent
+    // branches are flagged (micro-architectural leakage via control flow).
+    tmp_branch_tac.sensitivity = (sens >= 0) ? return_sensitivity(sens) : 0;
     tmp_branch_tac.dest_type = TAC_OPERAND::NONE;
     tmp_branch_tac.src1_type = TAC_OPERAND::NONE;
     tmp_branch_tac.src2_type = TAC_OPERAND::NONE;

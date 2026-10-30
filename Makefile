@@ -16,7 +16,7 @@
 ##################################################
 
 # Include directories with .h files. Separate multiple directories with a space.
-INC_DIRS = inc
+INC_DIRS = inc /opt/homebrew/include /usr/local/include
 
 # Source directories with the .c and .cpp files. Separate multiple directories with a space.
 SRC_DIRS = src
@@ -29,15 +29,20 @@ RELEASE_DIR = release
 DEBUG_DIR = debug
 
 # Compiler options
-C_RELEASE_FLAGS   = -Wall -Wextra -Wshadow -pedantic -fopenmp -O3 -fomit-frame-pointer -std=c++17 
-C_DEBUG_FLAGS     = -Wall -Wextra -Wshadow -pedantic -fopenmp -g -O2 -fsanitize=address -std=c++17
+# -fopenmp is intentionally NOT added by default: Apple clang (default on macOS)
+# does not support it, and OpenMP is not actually used anywhere in the sources
+# (no #pragma omp, no omp.h). Set OPENMP_FLAG=-fopenmp manually if needed.
+OPENMP_FLAG =
 
-CXX_RELEASE_FLAGS = -Wall -Wextra -Wshadow -pedantic -fopenmp -O3 -fomit-frame-pointer -std=c++17 
-CXX_DEBUG_FLAGS   = -Wall -Wextra -Wshadow -pedantic -fopenmp -g -O2 -fsanitize=address -std=c++17
+C_RELEASE_FLAGS   = -Wall -Wextra -Wshadow -pedantic $(OPENMP_FLAG) -O3 -fomit-frame-pointer -std=c++17 
+C_DEBUG_FLAGS     = -Wall -Wextra -Wshadow -pedantic $(OPENMP_FLAG) -g -O2 -fsanitize=address -std=c++17
+
+CXX_RELEASE_FLAGS = -Wall -Wextra -Wshadow -pedantic $(OPENMP_FLAG) -O3 -fomit-frame-pointer -std=c++17 
+CXX_DEBUG_FLAGS   = -Wall -Wextra -Wshadow -pedantic $(OPENMP_FLAG) -g -O2 -fsanitize=address -std=c++17
 
 # Linker options. Add libraries you want to link against here.
-RELEASE_LINK_FLAGS = -L$(LIB_DIR) -fopenmp -ldl -lboost_regex
-DEBUG_LINK_FLAGS = -L$(LIB_DIR) -fsanitize=address -fopenmp -ldl -lboost_regex
+RELEASE_LINK_FLAGS = -L$(LIB_DIR) -L/opt/homebrew/lib $(OPENMP_FLAG) -ldl -lboost_regex
+DEBUG_LINK_FLAGS = -L$(LIB_DIR) -L/opt/homebrew/lib -fsanitize=address $(OPENMP_FLAG) -ldl -lboost_regex
 
 # Output file name
 OUTPUT = POMMES
@@ -101,8 +106,8 @@ else
 	LINK := $(CXX)
 endif
 
-# store make invocation time
-START_TIME := $(shell date +%s%3N)
+# store make invocation time (date +%s%3N is GNU-only; use %s for macOS compatibility)
+START_TIME := $(shell date +%s)
 
 # tell make to not print spam on recursive calls
 MAKEFLAGS += --no-print-directory
@@ -142,9 +147,9 @@ endif
 # create obj directory and compile
 compile: check directories $(OUTPUT_DIRECTORY)/$(OUTPUT)
 ifeq ($(D), 1)
-	@diff=$$(($(shell date +%s%3N) - $(START_TIME))); echo 'Debug build completed in '$$(($$diff / 1000))'.'$$(($$diff % 1000))'s'
+	@diff=$$(($(shell date +%s) - $(START_TIME))); echo 'Debug build completed in '$$diff's'
 else
-	@diff=$$(($(shell date +%s%3N) - $(START_TIME))); echo 'Release build completed in '$$(($$diff / 1000))'.'$$(($$diff % 1000))'s'
+	@diff=$$(($(shell date +%s) - $(START_TIME))); echo 'Release build completed in '$$diff's'
 endif
 	@echo
 

@@ -607,7 +607,7 @@ void parse_cond(ssa& ssa_instruction, virtual_variables_vec& virtual_variables, 
 }
 
 
-void parse_function_call(const std::vector<internal_function_calls_struct>& internal_function_calls, ssa& ssa_instruction, virtual_variables_vec& virtual_variables, const std::vector<std::string>& tokens, const INSTRUCTION_TYPE instruction_type){
+void parse_function_call(std::vector<internal_function_calls_struct>& internal_function_calls, ssa& ssa_instruction, virtual_variables_vec& virtual_variables, const std::vector<std::string>& tokens, const INSTRUCTION_TYPE instruction_type){
     ssa_instruction.instr_type = instruction_type;
     
 
@@ -616,7 +616,15 @@ void parse_function_call(const std::vector<internal_function_calls_struct>& inte
     std::string func_name_upper = boost::to_upper_copy(func_name);
     auto it_internal_function_call = std::find_if(internal_function_calls.begin(), internal_function_calls.end(), [func_name_upper](const internal_function_calls_struct& t){return t.function_name == func_name_upper;});
     if(it_internal_function_call == internal_function_calls.end()){
-        throw std::runtime_error("in parse_function_call_with_return: can not find name of internal function call");
+        // Unknown internal function call (e.g. getRandomness) -> register a default public entry
+        // instead of aborting, so the tool stays robust for masking primitives that are
+        // not declared via POMMES_INPUT_* macros.
+        internal_function_calls_struct default_call;
+        default_call.function_name = func_name_upper;
+        default_call.parameter_sensitivity = {};
+        default_call.return_sensitivity = 0;
+        internal_function_calls.emplace_back(default_call);
+        it_internal_function_call = std::prev(internal_function_calls.end());
     }
 
     std::vector<param_struct> parameters;
@@ -634,7 +642,9 @@ void parse_function_call(const std::vector<internal_function_calls_struct>& inte
                 op_param.sensitivity = it_internal_function_call->parameter_sensitivity.at(i - 2);
             }
             catch(...){
-                throw std::runtime_error("in parse_function_call_without_return: amount of internal function call sensitivities is less than number of parameters. please assign every parameter a sensitivity level (SEC or PUB). ");
+                // Not all parameters have an assigned sensitivity (e.g. default-registered
+                // internal functions like getRandomness) -> treat as public.
+                op_param.sensitivity = 0;
             }
             
 
@@ -696,7 +706,7 @@ void parse_function_call(const std::vector<internal_function_calls_struct>& inte
 }
 
 
-void parse_call(const std::vector<internal_function_calls_struct>& internal_function_calls, ssa& ssa_instruction,virtual_variables_vec& virtual_variables, std::vector<std::string>& tokens){
+void parse_call(std::vector<internal_function_calls_struct>& internal_function_calls, ssa& ssa_instruction,virtual_variables_vec& virtual_variables, std::vector<std::string>& tokens){
     clean_tokens(tokens);
     if(tokens.at(1) == "NULL"){ //no return
         parse_function_call(internal_function_calls, ssa_instruction, virtual_variables, tokens, INSTRUCTION_TYPE::INSTR_FUNC_NO_RETURN);

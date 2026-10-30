@@ -5,8 +5,18 @@
 #include <string>
 #include <vector>
 #include <stdint.h>
-#include <bits/stdc++.h>
+#include <algorithm>
+#include <cmath>
+#include <fstream>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <numeric>
+#include <regex>
+#include <set>
 #include <sstream>
+#include <stdlib.h>
+#include <tuple>
 
 
 void parse_dereference(ssa& ssa_instruction, virtual_variables_vec& virtual_variables, std::vector<std::string>& tokens);
