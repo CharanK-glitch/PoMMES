@@ -1,0 +1,5 @@
+release/
+debug/
+obj_release/
+obj_debug/
+*.stackdump
